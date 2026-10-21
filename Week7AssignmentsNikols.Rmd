@@ -1,0 +1,155 @@
+---
+title: "Week7Assignments"
+author: "Nikols"
+date: "2026-10-06"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## GLMs: Worked with Alyssa, Caeden, Danielle, and Laura on these assignments. For all assignments/sets of GLMs, the ANOVA residual distributions were approximately normal and roughly followed a straight line on a QQ plot. In the interest of avoiding repetition I did not state this each time. 
+##Assignment 2: Analyze the Species dataset using a Poisson GLM and a model selection framework. Assignment 2 answers: Using a Poisson GLM, the best fit model for the species dataset with count of species as a response variable was pH*Biomass interacting. All variables assessed in the summary of this model were significant except for pHmid:Biomass, but both pHmid and Biomass on their own were significant. The explained deviance for the model was 81.6% which seems pretty good, as does the estimated dispersion at 0.99. Likewise, the ANOVA p-value for this GLM was significant for pH and Biomass, but not for pH:Biomass. 
+
+##Assignment 3: Analyze the Bolger or Isolation dataset using a logistic regression and a model selection framework. Assignment 3 answers: Using a binomial GLM, the best model for the isolation dataset was incidence as a function of area and isolation (not as interacting terms). Both variables had a statistically signifcant relationship to incidence of birds under this model (area p-value = 0.01909; isolation p-value = 0.00401). The next best model with the explanatory variables interacting was fairly close with a delta AICc of 2.2167. The explained deviances for model 3 (no interactions) versus model 4 (interacting) are 58.25016 and 58.47065, respectively. This indicates that purely in terms of deviance, model 4 is slightly better, which is the reverse of the comparative AICc values. However, none of the explanatory variables had statistically significant relationships with the response variable in model 4, while they were all significant in model 3, leading to the overall conclusion that the non-interacting complete model with both variables was the best fit.
+
+##Assignment 4: Analyze the Mole Rat dataset using a Gamma GLM and a model selection framework. Note: perform the Gamma GLM even if your variables are normally distributed, for practice. Assignment 4 answers: Using a Gamma GLM on the mole rat dataset, the best fit model with the lowest AICc (19.85075) was ln energy expenditure as a function of both ln mass and caste (non interacting). The next best model, with a delta AICc value of only 1.560173, was the complete model with ln mass and caste as interaction terms. The explained deviance for the non-interacting explanatory variable model and interacting models were 41.06977 and 43.01379, respectively. Similar to the bird isolation dataset, these outputs are only slightly different yet the opposite of the relationship seen between the two AICc values. However, the coefficient p-values for ln mass (p=4.38e-05) and caste (p=0.00993) were only significant in the non-interacting model, leading me towards the interpretation that this explains the data better overall. With respect to an ANOVA, the only large p-value (p=0.320609) and F-statistic that was close to 1 (F=1.019) was seen in lnmass:caste while ln mass and caste on their own were statistically significant. 
+
+##Assignment 5: After doing Assignments 2-4, Generate a Word doc of your linear models and ANOVAs using the knit function of the markdown file and then upload it to Moodle. If you work with any other students on these assignments, please add them at the top of your code
+
+```{r}
+library(readr)
+library(AICcmodavg)
+library(car)
+species <- read_csv("species.csv")
+Isolation <- read_csv("Isolation.csv")
+molerat <- read_csv("molerat.csv")
+```
+```{r}
+spmodel0 <- glm(Species~1, data=species, family="poisson")
+spmodel1 <- glm(Species~pH, data=species, family="poisson")
+spmodel2 <- glm(Species~Biomass, data=species, family="poisson")
+spmodel3 <- glm(Species~pH+Biomass, data=species, family="poisson")
+spmodel4 <- glm(Species~pH*Biomass, data=species, family="poisson")
+(AICc0 <- AICc(spmodel0))
+(AICc1 <- AICc(spmodel1))
+(AICc2 <- AICc(spmodel2))
+(AICc3 <- AICc(spmodel3))
+(AICc4 <- AICc(spmodel4))
+```
+```{r}
+(delAICc0 <- AICc(spmodel0)-AICc(spmodel4))
+(delAICc1 <- AICc(spmodel1)-AICc(spmodel4))
+(delAICc2 <- AICc(spmodel2)-AICc(spmodel4))
+(delAICc3 <- AICc(spmodel3)-AICc(spmodel4))
+(delAICc4 <- AICc(spmodel4)-AICc(spmodel4))
+summary(spmodel4)
+```
+```{r}
+#Explained deviance: 100 x ((null deviance - residual deviance) / null deviance)
+(spmodel4ExpDev <- 100 * ((452.346 - 83.201) / 452.346))
+```
+```{r}
+#Dispersion: residual deviance / residual degrees of freedom
+(spmodel4Dispersion <- 83.201/84)
+```
+```{r}
+(spmodel4ExpDev <- 100 * ((0.26903 - 0.15331) / 0.26903))
+spmodel4ANOVA <- aov(spmodel4)
+summary(spmodel4ANOVA)
+par(mfrow = c(1, 2)) 
+hist(spmodel4ANOVA$residuals)
+qqPlot(spmodel4ANOVA$residuals, id = FALSE)
+```
+##Assignment 3:
+```{r}
+isomodel0 <- glm(incidence~1, data=Isolation, family="binomial")
+isomodel1 <- glm(incidence ~ area, data=Isolation, family="binomial")
+isomodel2 <- glm(incidence ~ isolation, data=Isolation, family="binomial")
+isomodel3 <- glm(incidence ~ area + isolation, data=Isolation, family="binomial")
+isomodel4 <- glm(incidence ~ area * isolation, data=Isolation, family="binomial")
+(AICciso0 <- AICc(isomodel0))
+(AICciso1 <- AICc(isomodel1))
+(AICciso2 <- AICc(isomodel2))
+(AICciso3 <- AICc(isomodel3))
+(AICciso4 <- AICc(isomodel4))
+```
+```{r}
+(delAICciso0 <- AICc(isomodel0)-AICc(isomodel3))
+(delAICciso1 <- AICc(isomodel1)-AICc(isomodel3))
+(delAICciso2 <- AICc(isomodel2)-AICc(isomodel3))
+(delAICciso3 <- AICc(isomodel3)-AICc(isomodel3))
+(delAICciso4 <- AICc(isomodel4)-AICc(isomodel3))
+```
+```{r}
+summary(isomodel3)
+```
+```{r}
+isomodel3ANOVA <- aov(isomodel3)
+summary(isomodel3ANOVA)
+par(mfrow = c(1, 2)) 
+hist(isomodel3ANOVA$residuals)
+qqPlot(isomodel3ANOVA$residuals, id = FALSE)
+```
+```{r}
+summary(isomodel4)
+```
+```{r}
+isomodel4ANOVA <- aov(isomodel4)
+summary(isomodel4ANOVA)
+par(mfrow = c(1, 2)) 
+hist(isomodel4ANOVA$residuals)
+qqPlot(isomodel4ANOVA$residuals, id = FALSE)
+```
+```{r}
+(isomodel3ExpDev <- 100 * ((68.029 - 28.402) / 68.029))
+(isomodel4ExpDev <- 100 * ((68.029 - 28.252) / 68.029))
+```
+##Assignment 4: 
+```{r}
+mrmodel0 <- glm(lnenergy~1, data=molerat, family="Gamma")
+mrmodel1 <- glm(lnenergy~lnmass, data=molerat, family="Gamma")
+mrmodel2 <- glm(lnenergy~caste, data=molerat, family="Gamma")
+mrmodel3 <- glm(lnenergy~lnmass + caste, data=molerat, family="Gamma")
+mrmodel4 <- glm(lnenergy~lnmass * caste, data=molerat, family="Gamma")
+(AICcmr0 <- AICc(mrmodel0))
+(AICcmr1 <- AICc(mrmodel1))
+(AICcmr2 <- AICc(mrmodel2))
+(AICcmr3 <- AICc(mrmodel3))
+(AICcmr4 <- AICc(mrmodel4))
+```
+```{r}
+(delAICcmr0 <- AICc(mrmodel0)-AICc(mrmodel3))
+(delAICcmr1 <- AICc(mrmodel1)-AICc(mrmodel3))
+(delAICcmr2 <- AICc(mrmodel2)-AICc(mrmodel3))
+(delAICcmr3 <- AICc(mrmodel3)-AICc(mrmodel3))
+(delAICcmr4 <- AICc(mrmodel4)-AICc(mrmodel3))
+```
+```{r}
+summary(mrmodel3)
+(mrmodel3ExpDev <- 100 * ((0.26903 - 0.15854) / 0.26903))
+```
+```{r}
+mrmodel3ANOVA <- aov(mrmodel3)
+summary(mrmodel3ANOVA)
+par(mfrow = c(1, 2)) 
+hist(mrmodel3ANOVA$residuals)
+qqPlot(mrmodel3ANOVA$residuals, id = FALSE)
+```
+```{r}
+summary(mrmodel4)
+(mrmodel4ExpDev <- 100 * ((0.26903 - 0.15331) / 0.26903))
+```
+
+
+```{r}
+mrmodel4ANOVA <- aov(mrmodel4)
+summary(mrmodel4ANOVA)
+par(mfrow = c(1, 2)) 
+hist(mrmodel4ANOVA$residuals)
+qqPlot(mrmodel4ANOVA$residuals, id = FALSE)
+```
+

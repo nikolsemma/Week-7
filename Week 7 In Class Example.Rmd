@@ -1,0 +1,25 @@
+---
+title: "InClass Week 7"
+author: "Nikols"
+date: "2026-10-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Iris dataset GLM
+```{r}
+head(iris)
+```
+
+
+```{r}
+#must specify family of the GLM - it defaults to Gaussian/normal, which is a regular linear model
+glm(Sepal.Length~Sepal.Width, data=iris) #output is a regulat linear model
+glm(Sepal.Length~Sepal.Width, data=iris, family="Gamma") #output is a Gamma glm
+```
+```{r}
+summary(glm(Sepal.Length~Sepal.Width, data=iris, family="Gamma")) #p-value for sepal width is not significant
+```
+
